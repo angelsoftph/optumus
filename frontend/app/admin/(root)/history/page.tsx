@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { HistoryColumns } from "./columns";
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -12,16 +12,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -45,8 +41,6 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { AdminSidebar } from "../sidebar";
 import Loading from "@/app/loading";
-import { formatDate } from "@/lib/utils";
-import Swal from "sweetalert2";
 
 interface FetchHistoryParams {
   page: number;
@@ -57,100 +51,6 @@ interface FetchHistoryResponse {
   history: HistoryType[];
   total: number;
 }
-
-const sendReminder = () => {
-  Swal.fire({
-    title: "Success",
-    text: "A reminder has been sent to the borrower to return the book.",
-    icon: "success",
-    confirmButtonText: "Great!",
-  });
-};
-
-export const columns: ColumnDef<HistoryType>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "title",
-    header: "Title",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("title")}</div>
-    ),
-  },
-  {
-    accessorKey: "fullname",
-    header: "Loaned By",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("fullname")}</div>
-    ),
-  },
-  {
-    accessorKey: "created_at",
-    header: "Loaned On",
-    cell: ({ row }) => <div>{formatDate(row.getValue("created_at"))}</div>,
-  },
-  {
-    accessorKey: "updated_at",
-    header: "Returned On",
-    cell: ({ row }) => <div>{formatDate(row.getValue("updated_at"))}</div>,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("status") === "R" ? "Returned" : "Out"}
-      </div>
-    ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const status = row.original.status;
-
-      if (status === "R") return null;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={sendReminder}>
-              Send Reminder
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 const fetchHistory = async ({
   page,
@@ -202,7 +102,7 @@ const LoanHistoryPage = () => {
 
   const table = useReactTable({
     data: history,
-    columns,
+    columns: HistoryColumns,
     manualPagination: true,
     pageCount: Math.ceil(total / limit),
     state: {
@@ -343,7 +243,7 @@ const LoanHistoryPage = () => {
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={columns.length}
+                        colSpan={HistoryColumns.length}
                         className="h-24 text-center"
                       >
                         No results.
